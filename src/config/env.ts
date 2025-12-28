@@ -1,6 +1,6 @@
 /* eslint-disable @typescript-eslint/non-nullable-type-assertion-style */
 import dotenv from "dotenv";
-
+import type { StringValue } from "ms";
 dotenv.config();
 
 interface IConfigEnv {
@@ -10,8 +10,8 @@ interface IConfigEnv {
   // JWT
   JWT_ACCESS_SECRET: string;
   JWT_REFRESH_SECRET: string;
-  JWT_ACCESS_EXPIRES_IN: string;
-  JWT_REFRESH_EXPIRES_IN: string;
+  JWT_ACCESS_EXPIRES_IN: StringValue;
+  JWT_REFRESH_EXPIRES_IN: StringValue;
 
   // Google OAuth
   GOOGLE_CLIENT_ID: string;
@@ -51,8 +51,8 @@ const loadEnvVariables = (): IConfigEnv => {
     // JWT Configuration
     JWT_ACCESS_SECRET: process.env.JWT_ACCESS_SECRET as string,
     JWT_REFRESH_SECRET: process.env.JWT_REFRESH_SECRET as string,
-    JWT_ACCESS_EXPIRES_IN: process.env.JWT_ACCESS_EXPIRES_IN as string,
-    JWT_REFRESH_EXPIRES_IN: process.env.JWT_REFRESH_EXPIRES_IN as string,
+    JWT_ACCESS_EXPIRES_IN: process.env.JWT_ACCESS_EXPIRES_IN as StringValue,
+    JWT_REFRESH_EXPIRES_IN: process.env.JWT_REFRESH_EXPIRES_IN as StringValue,
 
     // Google OAuth
     GOOGLE_CLIENT_ID: process.env.GOOGLE_CLIENT_ID as string,
