@@ -49,10 +49,8 @@ export const setAuthCookies = (
 
 //clear all authentication cookies
 export const clearAuthCookies = (res: Response): void => {
-  const clearOptions: CookieOptions = {
-    ...getBaseCookieOptions(),
-    maxAge: 0,
-  };
-  res.cookie(COOKIE_NAMES.ACCESS_TOKEN, "", clearOptions);
-  res.cookie(COOKIE_NAMES.REFRESH_TOKEN, "", clearOptions);
+  // clearCookie requires the same options (path, domain, etc.) that were used when setting the cookie
+  const baseOptions = getBaseCookieOptions();
+  res.clearCookie(COOKIE_NAMES.ACCESS_TOKEN, baseOptions);
+  res.clearCookie(COOKIE_NAMES.REFRESH_TOKEN, baseOptions);
 };

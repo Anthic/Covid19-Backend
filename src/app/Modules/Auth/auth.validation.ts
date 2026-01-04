@@ -13,11 +13,11 @@ import { z } from "zod";
  * Email schema
  */
 const emailSchema = z
-  .email("Invalid email format")
+  .string()
   .min(1, "Email is required")
+ 
   .trim()
   .toLowerCase();
-
 /**
  * Password schema with strength requirements
  */
