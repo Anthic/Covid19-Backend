@@ -29,7 +29,7 @@ export interface IUser {
   avatar?: string | null;
   role: UserRole;
   status: UserStatus;
-  provider: AuthProvider ;
+  provider: AuthProvider;
   providerId?: string | null;
   isEmailVerified: boolean;
   refreshTokens: string[];
@@ -37,6 +37,8 @@ export interface IUser {
   loginAttempts: number;
   lockUntil?: Date | null;
   passwordChangedAt?: Date | null;
+  createdAt: Date;
+  updatedAt: Date;
 }
 
 //user documment interface (with mongoose document)
