@@ -9,8 +9,8 @@ import User from "../Modules/User/user.model";
 import { UserRole, UserStatus } from "../Modules/User/user.types";
 import type { IAuthRequest } from "../Modules/Auth/auth.types";
 
-export const autheticate = async (
-  req: Request,
+export const authenticate = async (
+  req: IAuthRequest,
   _res: Response,
   next: NextFunction
 ): Promise<void> => {

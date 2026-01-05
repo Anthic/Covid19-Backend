@@ -46,7 +46,7 @@ export const register = async (
 }> => {
   const { email, password, name } = input;
   //check if user exists
-  const exiitingUser = await User.findById({ email });
+  const exiitingUser = await User.findById({ email: email.toLowerCase() });
   if (exiitingUser) {
     throw new AppError("Email already registered", 409, {
       errorCode: "EMAIL_EXISTS",
