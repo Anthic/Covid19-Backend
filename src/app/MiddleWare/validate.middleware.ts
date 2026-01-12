@@ -21,7 +21,9 @@ export const validate =
         params: req.params,
         cookies: req.cookies,
       });
-      req.body = validatedData.body ?? {};
+      req.body = validatedData.body;
+      req.query = validatedData.query as typeof req.query;
+      req.params = validatedData.params as typeof req.params;
       next();
     } catch (error) {
       if (error instanceof z.ZodError) {
