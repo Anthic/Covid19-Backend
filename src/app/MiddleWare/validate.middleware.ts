@@ -21,9 +21,11 @@ export const validate =
         params: req.params,
         cookies: req.cookies,
       });
-      req.body = validatedData.body;
-      req.query = validatedData.query as typeof req.query;
-      req.params = validatedData.params as typeof req.params;
+      if (validatedData.body !== undefined) req.body = validatedData.body;
+      if (validatedData.query !== undefined) req.query = validatedData.query as typeof req.query;
+      if (validatedData.params !== undefined) req.params = validatedData.params as typeof req.params;
+      if (validatedData.cookies !== undefined) req.cookies = validatedData.cookies as typeof req.cookies;
+      
       next();
     } catch (error) {
       if (error instanceof z.ZodError) {
