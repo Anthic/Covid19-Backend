@@ -11,6 +11,8 @@ import compression from "compression";
 import AppError from "./app/errorHelper/AppError";
 import globalErrorHandler from "./app/MiddleWare/globalErrorHandler";
 import crypto from "crypto"; 
+import { router } from "./app/Router";
+import cookieParser from "cookie-parser";
 const app = express();
 
 //security middleware
@@ -23,6 +25,7 @@ app.use(compression());
 
 app.use(express.json({ limit: "10mb" }));
 app.use(express.urlencoded({ extended: true, limit: "10mb" }));
+app.use(cookieParser())
 
 //request id middleware (important error tracking)
 app.use((req: Request, _res: Response, next: NextFunction) => {
@@ -30,7 +33,7 @@ app.use((req: Request, _res: Response, next: NextFunction) => {
   next();
 });
 //Routes
-// app.use("/api/v1", router);
+app.use("/api/v1", router);
 app.get("/", (req: Request, res: Response) => {
   res.status(200).json({
     message: "Welcome to the covid-19 server",

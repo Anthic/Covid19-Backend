@@ -15,7 +15,7 @@ import { z } from "zod";
 const emailSchema = z
   .string()
   .min(1, "Email is required")
- 
+
   .trim()
   .toLowerCase();
 /**
@@ -79,7 +79,8 @@ export const refreshTokenSchema = z.object({
     .object({
       refreshToken: z.string().optional(),
     })
-    .optional(),
+    .optional()
+    .default({}),
   cookies: z
     .object({
       refresh_token: z.string().optional(),

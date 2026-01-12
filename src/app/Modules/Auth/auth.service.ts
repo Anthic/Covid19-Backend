@@ -1,6 +1,5 @@
 //helper function
 
-import { toString } from "validator";
 import {
   generateTokenPair,
   verifyRefreshToken,
@@ -13,7 +12,11 @@ import {
   type ISafeUser,
   type IUserDocument,
 } from "../User/user.types";
-import type { IChangePasswordInput, ILoginInput, IRegisterInput } from "./auth.types";
+import type {
+  IChangePasswordInput,
+  ILoginInput,
+  IRegisterInput,
+} from "./auth.types";
 
 //tranform user document to safe user object
 const toSafeUser = (user: IUserDocument): ISafeUser => ({
@@ -47,7 +50,7 @@ export const register = async (
 }> => {
   const { email, password, name } = input;
   //check if user exists
-  const exiitingUser = await User.findById({ email: email.toLowerCase() });
+  const exiitingUser = await User.findOne({ email: email.toLowerCase() });
   if (exiitingUser) {
     throw new AppError("Email already registered", 409, {
       errorCode: "EMAIL_EXISTS",
@@ -99,7 +102,7 @@ export const login = async (
       ? Math.ceil((user.lockUntil.getTime() - Date.now()) / 60000)
       : 15;
     throw new AppError(
-      `Account is locked. Try again in ${toString(lockTime)} minutes`,
+      `Account is locked. Try again in +${lockTime.toString()} minutes`,
       423,
       {
         errorCode: "ACCOUNT_LOCKED",
@@ -224,18 +227,18 @@ export const logoutAllDevices = async (userId: string): Promise<void> => {
   user.refreshTokens = [];
   await user.save();
 };
-export const changePassword = async(
+export const changePassword = async (
   userId: string,
   input: IChangePasswordInput
-): Promise<void> =>{
-  const {currentPassword, newPassword} = input
-  const user = await User.findById(userId).select("+password +refreshTokens")
-    if (!user) {
+): Promise<void> => {
+  const { currentPassword, newPassword } = input;
+  const user = await User.findById(userId).select("+password +refreshTokens");
+  if (!user) {
     throw new AppError("User not found", 404, {
       errorCode: "USER_NOT_FOUND",
     });
   }
-  
+
   //check if user has password (google users might not)
   if (!user.password) {
     throw new AppError(
@@ -244,21 +247,19 @@ export const changePassword = async(
       { errorCode: "NO_PASSWORD", provider: user.provider }
     );
   }
-    //verify current password
+  //verify current password
   const isPasswordValid = await user.comparePassword(currentPassword);
   if (!isPasswordValid) {
     throw new AppError("Current password is incorrect", 401, {
       errorCode: "INVALID_PASSWORD",
     });
   }
-    //update password
+  //update password
   user.password = newPassword;
   //invalidate all refresh tokens for security
   user.refreshTokens = [];
   await user.save();
-
-
-}
+};
 //get current user
 export const getCurrentUser = async (userId: string): Promise<ISafeUser> => {
   const user = await User.findById(userId);

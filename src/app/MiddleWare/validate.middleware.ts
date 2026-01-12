@@ -15,12 +15,13 @@ export const validate =
   (Schema: RequestSchema) =>
   async (req: Request, _res: Response, next: NextFunction): Promise<void> => {
     try {
-      await Schema.parseAsync({
+      const validatedData = await Schema.parseAsync({
         body: req.body,
         query: req.query,
         params: req.params,
         cookies: req.cookies,
       });
+      req.body = validatedData.body ?? {};
       next();
     } catch (error) {
       if (error instanceof z.ZodError) {

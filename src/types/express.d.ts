@@ -5,6 +5,7 @@ declare global {
     interface Request {
       user?: IUserDocument;
       userId?: string;
+      cookies: Record<string, string>; // ✅ fix করুন
     }
   }
 }

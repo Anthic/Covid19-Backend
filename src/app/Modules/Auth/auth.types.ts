@@ -10,7 +10,10 @@ import type {
 // ============================================
 // REQUEST TYPES
 // ============================================
-
+export interface TypedRequestBody<T = any > extends Request {
+  body: T;
+  cookies: Record<string, string>; 
+}
 /**
  * Authenticated request with user data
  */
