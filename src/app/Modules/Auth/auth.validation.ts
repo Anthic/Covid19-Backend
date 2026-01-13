@@ -151,5 +151,17 @@ export const googleAuthSchema = z.object({
     idToken: z.string().min(1, "Google ID token is required"),
   }),
 });
-
+export const logoutSchema = z.object({
+  body: z
+    .object({
+      refreshToken: z.string().optional(),
+    })
+    .optional()
+    .default({}),
+  cookies: z
+    .object({
+      refresh_token: z.string().optional(),
+    })
+    .optional(),
+});
 export type GoogleAuthInput = z.infer<typeof googleAuthSchema>["body"];

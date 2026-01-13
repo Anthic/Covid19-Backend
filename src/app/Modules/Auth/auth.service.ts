@@ -14,6 +14,7 @@ import {
 } from "../User/user.types";
 import type {
   IChangePasswordInput,
+  IGoogleUserInfo,
   ILoginInput,
   IRegisterInput,
 } from "./auth.types";
@@ -227,6 +228,7 @@ export const logoutAllDevices = async (userId: string): Promise<void> => {
   user.refreshTokens = [];
   await user.save();
 };
+
 export const changePassword = async (
   userId: string,
   input: IChangePasswordInput
@@ -271,4 +273,55 @@ export const getCurrentUser = async (userId: string): Promise<ISafeUser> => {
   }
 
   return toSafeUser(user);
+};
+
+//google login
+export const googleAuth = async (
+  googleUserInfo: IGoogleUserInfo
+): Promise<{
+  user: ISafeUser;
+  accessToken: string;
+  refreshToken: string;
+}> => {
+  const { sub: providerId, email, name, picture } = googleUserInfo;
+  const normalizedEmail = email.toLowerCase().trim();
+  let user = await User.findOne({
+    $or: [{ email: normalizedEmail }, { providerId }],
+  }).select("+refreshTokens");
+  if (!user) {
+    user = await User.create({
+      email: normalizedEmail,
+      name,
+      avatar: picture ?? undefined,
+      provider: AuthProvider.GOOGLE,
+      providerId,
+      isEmailVerified: true,
+    });
+  } else if (user.provider !== AuthProvider.GOOGLE) {
+    user.provider = AuthProvider.GOOGLE;
+    user.providerId = providerId;
+    if (!user.avatar && picture) {
+      user.avatar = picture;
+    }
+  }
+  const payload = createTokenPayload(user);
+  const { accessToken, refreshToken } = generateTokenPair(payload);
+
+  const MAX_SESSIONS = 5;
+  const refreshTokens = user.refreshTokens;
+
+  if (refreshTokens.length >= MAX_SESSIONS) {
+    refreshTokens.shift();
+  }
+
+  refreshTokens.push(refreshToken);
+  user.refreshTokens = refreshTokens;
+  user.lastLogin = new Date();
+  await user.save();
+
+  return {
+    user: toSafeUser(user),
+    accessToken,
+    refreshToken,
+  };
 };

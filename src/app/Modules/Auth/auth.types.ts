@@ -1,25 +1,21 @@
-
-
 import type { Request } from "express";
-import type {
-  IUserDocument,
-  ISafeUser,
-  UserRole,
-} from "../User/user.types";
+import type { IUserDocument, ISafeUser, UserRole } from "../User/user.types";
 
 // ============================================
 // REQUEST TYPES
 // ============================================
-export interface TypedRequestBody<T = any > extends Request {
+export interface TypedRequestBody<T> extends Request {
   body: T;
-  cookies: Record<string, string>; 
+  cookies: Record<string, string>;
 }
 /**
  * Authenticated request with user data
  */
-export interface IAuthRequest extends Request {
+export interface IAuthRequest<TBody = Record<string, unknown>> extends Request {
   user?: IUserDocument;
   userId?: string;
+  body: TBody;
+  cookies: Record<string, string>;
 }
 
 // ============================================
