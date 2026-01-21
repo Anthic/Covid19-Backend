@@ -16,7 +16,7 @@ const passwordSchema = z
   .regex(/\d/, "Password must contain at least one number")
   .regex(
     /[@$!%*?&#^()_+\-=[\]{};':"\\|,.<>/]/,
-    "Password must contain at least one special character (@$!%*?&#^()_+-=[]{})",
+    "Password must contain at least one special character",
   );
 
 /**
@@ -321,7 +321,7 @@ export const bulkUpdateStatusSchema = z.object({
 
 export const adminUpdateUserSchema = z.object({
   params: z.object({
-    id: objectIdSchema, // Changed from userId to id for consistency
+    userId: objectIdSchema, // Changed from userId to id for consistency
   }),
   body: z
     .object({
