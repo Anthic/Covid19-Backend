@@ -321,7 +321,7 @@ export const bulkUpdateStatusSchema = z.object({
 
 export const adminUpdateUserSchema = z.object({
   params: z.object({
-    userId: objectIdSchema, // Changed from userId to id for consistency
+    userId: objectIdSchema,
   }),
   body: z
     .object({

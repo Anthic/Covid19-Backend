@@ -1,8 +1,9 @@
 import type { Response } from "express";
 import { catchAsync } from "../../../utils/catchAsync";
 import type { IAuthRequest } from "../Auth/auth.types";
-import type { IUpdateUserInput, UserRole, UserStatus } from "./user.types";
+import { UserRole, UserStatus, type IUpdateUserInput } from "./user.types";
 import { UserService } from "./user.service";
+import { isEnumValue } from "../../../utils/enum.util";
 
 //get all the users (admin only)
 const getAllUsers = catchAsync(
@@ -47,15 +48,46 @@ const getUserById = catchAsync(
 //update user (admin only)
 const updateUser = catchAsync(
   async (req: IAuthRequest, res: Response): Promise<void> => {
-    const { userId } = req.params; 
-        if (!userId) {
+    const { userId } = req.params;
+
+    if (!userId) {
       res.status(400).json({
         success: false,
         message: "User ID is required",
       });
       return;
     }
-    const user = await UserService.updateUser(userId, req.body);
+
+    const { name, avatar, status, role } = req.body;
+
+    const updates: Partial<IUpdateUserInput> = {};
+
+    if (typeof name === "string") updates.name = name.trim();
+
+    if (typeof avatar === "string") {
+      updates.avatar = avatar.trim();
+    } else if (avatar === null) {
+      updates.avatar = null;
+    }
+
+    // ✅ ENUM SAFE CHECK
+    if (isEnumValue(UserStatus, status)) {
+      updates.status = status;
+    }
+
+    if (isEnumValue(UserRole, role)) {
+      updates.role = role;
+    }
+
+    if (!Object.keys(updates).length) {
+      res.status(400).json({
+        success: false,
+        message: "No valid fields provided for update",
+      });
+      return;
+    }
+
+    const user = await UserService.updateUser(userId, updates);
 
     res.status(200).json({
       success: true,
