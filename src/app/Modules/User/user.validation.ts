@@ -1,14 +1,11 @@
-
 import { z } from "zod";
 import { UserRole, UserStatus } from "./user.types";
-
 
 // BASE VALIDATION SCHEMAS
 /**
  * Email validation
  */
 const emailSchema = z.email("Invalid email format").toLowerCase().trim();
-
 
 const passwordSchema = z
   .string({ message: "Password is required" })
@@ -19,7 +16,7 @@ const passwordSchema = z
   .regex(/\d/, "Password must contain at least one number")
   .regex(
     /[@$!%*?&#^()_+\-=[\]{};':"\\|,.<>/]/,
-    "Password must contain at least one special character (@$!%*?&#^()_+-=[]{})"
+    "Password must contain at least one special character (@$!%*?&#^()_+-=[]{})",
   );
 
 /**
@@ -31,7 +28,7 @@ const nameSchema = z
   .max(100, "Name cannot exceed 100 characters")
   .regex(
     /^[a-zA-Z\s'-]+$/,
-    "Name can only contain letters, spaces, hyphens and apostrophes"
+    "Name can only contain letters, spaces, hyphens and apostrophes",
   )
   .trim();
 
@@ -52,7 +49,6 @@ const avatarSchema = z
 const objectIdSchema = z
   .string()
   .regex(/^[0-9a-fA-F]{24}$/, "Invalid ID format");
-
 
 // AUTHENTICATION SCHEMAS
 /**
@@ -134,7 +130,6 @@ export const resetPasswordSchema = z.object({
     }),
 });
 
-
 // USER CRUD SCHEMAS
 
 /**
@@ -166,11 +161,11 @@ export const updateUserSchema = z.object({
     .refine(
       (data) =>
         Object.keys(data).some(
-          (key) => data[key as keyof typeof data] !== undefined
+          (key) => data[key as keyof typeof data] !== undefined,
         ),
       {
         message: "At least one field must be provided for update",
-      }
+      },
     ),
 });
 
@@ -190,11 +185,11 @@ export const patchUserSchema = z.object({
     .refine(
       (data) =>
         Object.keys(data).some(
-          (key) => data[key as keyof typeof data] !== undefined
+          (key) => data[key as keyof typeof data] !== undefined,
         ),
       {
         message: "At least one field must be provided for update",
-      }
+      },
     ),
 });
 
@@ -210,7 +205,7 @@ export const updateUserRoleSchema = z.object({
       [UserRole.USER, UserRole.ADMIN, UserRole.SUPER_ADMIN] as const,
       {
         message: "Invalid user role. Must be USER, ADMIN, or SUPER_ADMIN",
-      }
+      },
     ),
   }),
 });
@@ -233,7 +228,7 @@ export const updateUserStatusSchema = z.object({
       {
         message:
           "Invalid user status. Must be ACTIVE, INACTIVE, BLOCKED, or PENDING",
-      }
+      },
     ),
   }),
 });
@@ -255,7 +250,6 @@ export const deleteUserSchema = z.object({
     userId: objectIdSchema,
   }),
 });
-
 
 // QUERY & PAGINATION SCHEMAS
 
@@ -320,14 +314,39 @@ export const bulkUpdateStatusSchema = z.object({
       {
         message:
           "Invalid user status. Must be ACTIVE, INACTIVE, BLOCKED, or PENDING",
-      }
+      },
     ),
   }),
 });
 
-
+export const adminUpdateUserSchema = z.object({
+  params: z.object({
+    id: objectIdSchema, // Changed from userId to id for consistency
+  }),
+  body: z
+    .object({
+      name: nameSchema.optional(),
+      avatar: z
+        .union([z.url("Invalid avatar URL").optional(), z.null()])
+        .optional(),
+      status: z
+        .enum([
+          UserStatus.ACTIVE,
+          UserStatus.INACTIVE,
+          UserStatus.BLOCKED,
+          UserStatus.PENDING,
+        ] as const)
+        .optional(),
+      role: z
+        .enum([UserRole.USER, UserRole.ADMIN, UserRole.SUPER_ADMIN] as const)
+        .optional(),
+    })
+    .refine((data) => Object.keys(data).length > 0, {
+      message:
+        "At least one field (name, avatar, status, or role) must be provided",
+    }),
+});
 // TYPE EXPORTS
-
 
 export type RegisterUserInput = z.infer<typeof registerUserSchema>["body"];
 export type LoginUserInput = z.infer<typeof loginUserSchema>["body"];
@@ -342,6 +361,9 @@ export type UpdateUserRoleInput = z.infer<typeof updateUserRoleSchema>;
 export type UpdateUserStatusInput = z.infer<typeof updateUserStatusSchema>;
 
 export type GetUsersQuery = z.infer<typeof getUsersSchema>["query"];
+export type AdminUpdateUserInput = z.infer<
+  typeof adminUpdateUserSchema
+>["body"];
 export type BulkDeleteUsersInput = z.infer<
   typeof bulkDeleteUsersSchema
 >["body"];

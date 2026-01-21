@@ -10,7 +10,8 @@ import {
   getUsersSchema,
   getUserByIdSchema,
   updateUserSchema,
-  patchUserSchema,
+  
+   adminUpdateUserSchema,
   updateUserRoleSchema,
   updateUserStatusSchema,
   deleteUserSchema,
@@ -47,7 +48,7 @@ userRouter.get("/stats", authenticate, isAdmin, UserController.getUserStats);
 
 // Get user by ID
 userRouter.get(
-  "/:userId",
+  "/:id",
   authenticate,
   isAdmin,
   validate(getUserByIdSchema),
@@ -56,16 +57,16 @@ userRouter.get(
 
 // Update user
 userRouter.patch(
-  "/:userId",
+  "/:id",
   authenticate,
   isAdmin,
-  validate(patchUserSchema),
+  validate( adminUpdateUserSchema),
   UserController.updateUser,
 );
 
 // Update user status
 userRouter.patch(
-  "/:userId/status",
+  "/:id/status",
   authenticate,
   isAdmin,
   validate(updateUserStatusSchema),
@@ -74,7 +75,7 @@ userRouter.patch(
 
 // Delete user
 userRouter.delete(
-  "/:userId",
+  "/:id",
   authenticate,
   isAdmin,
   validate(deleteUserSchema),
@@ -85,7 +86,7 @@ userRouter.delete(
 
 // Update user role
 userRouter.patch(
-  "/:userId/role",
+  "/:id/role",
   authenticate,
   isSuperAdmin,
   validate(updateUserRoleSchema),

@@ -35,8 +35,6 @@ const toSafeUser = (user: IUserDocument): ISafeUser => ({
   updatedAt: user.updatedAt,
 });
 
-
-
 //generate payload toke from user
 const createTokenPayload = (user: IUserDocument): ITokenPayload => ({
   userId: user._id.toString(),
@@ -115,7 +113,17 @@ export const login = async (
       },
     );
   }
-
+  // Check account status
+  if (
+    user.status === UserStatus.BLOCKED ||
+    user.status === UserStatus.INACTIVE
+  ) {
+    throw new AppError(
+      "This account is not active. Please contact support.",
+      403,
+      { errorCode: "ACCOUNT_NOT_ACTIVE", status: user.status },
+    );
+  }
   //check if  has password (might be google only account)
   if (!user.password) {
     throw new AppError(

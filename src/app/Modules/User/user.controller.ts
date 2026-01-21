@@ -47,16 +47,31 @@ const getUserById = catchAsync(
 //update user (admin only)
 const updateUser = catchAsync(
   async (req: IAuthRequest, res: Response): Promise<void> => {
-    const { userId } = req.params;
-    const updates = req.body;
-    if (!userId) {
+    const { id } = req.params; // userId theke id te change
+    if (!id) {
       res.status(400).json({
         success: false,
         message: "User ID is required",
       });
       return;
     }
-    const user = await UserService.updateUser(userId, updates);
+
+    // Whitelist allowed admin-editable fields
+
+    const updates: IUpdateUserInput = {};
+    if ("name" in req.body && typeof req.body.name === "string") {
+      updates.name = req.body.name;
+    }
+    if ("avatar" in req.body && typeof req.body.avatar === "string") {
+      updates.avatar = req.body.avatar;
+    }
+    if ("status" in req.body && typeof req.body.status === "string") {
+      updates.status = req.body.status as UserStatus;
+    }
+    if ("role" in req.body && typeof req.body.role === "string") {
+      updates.role = req.body.role as UserRole;
+    }
+    const user = await UserService.updateUser(id, updates);
 
     res.status(200).json({
       success: true,
@@ -96,7 +111,7 @@ const changeUserStatus = catchAsync(
     if (!id || !status) {
       res.status(400).json({
         success: false,
-         message: !id ? "User ID is required" : "Status is required",
+        message: !id ? "User ID is required" : "Status is required",
       });
       return;
     }
@@ -122,7 +137,6 @@ const changeUserRole = catchAsync(
       res.status(400).json({
         success: false,
         message: !id ? "User ID is required" : "Role is required",
-
       });
       return;
     }

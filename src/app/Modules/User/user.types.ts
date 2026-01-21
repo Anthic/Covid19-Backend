@@ -87,7 +87,7 @@ export interface ICreateUserInput {
 //update user input
 export interface IUpdateUserInput {
   name?: string;
-  avatar?: string;
+  avatar?: string | null;
   status?: UserStatus;
   role?: UserRole;
 }
