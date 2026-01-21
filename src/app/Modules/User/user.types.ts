@@ -37,6 +37,8 @@ export interface IUser {
   loginAttempts: number;
   lockUntil?: Date | null;
   passwordChangedAt?: Date | null;
+  passwordResetToken?: string | null;
+  passwordResetExpires?: Date | null;
   createdAt: Date;
   updatedAt: Date;
 }
@@ -48,6 +50,7 @@ export interface IUserDocument extends IUser, Document {
   isLocked(): boolean;
   incrementLoginAttempts(): Promise<void>;
   resetLoginAttempts(): Promise<void>;
+  clearPasswordResetToken(): Promise<void>;
 }
 
 //user model static methods

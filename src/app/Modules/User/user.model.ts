@@ -4,7 +4,7 @@ import {
   UserRole,
   UserStatus,
   type IUserDocument,
-  type IUserModel, 
+  type IUserModel,
 } from "./user.types";
 import bcrypt from "bcrypt";
 
@@ -16,7 +16,6 @@ const userSchema = new Schema<IUserDocument>(
       unique: true,
       lowercase: true,
       trim: true,
-     
     },
     password: {
       type: String,
@@ -78,6 +77,16 @@ const userSchema = new Schema<IUserDocument>(
       type: Date,
       default: null,
     },
+    passwordResetToken: {
+      type: String,
+      default: null,
+      select: false,
+    },
+    passwordResetExpires: {
+      type: Date,
+      default: null,
+      select: false,
+    },
   },
   {
     timestamps: true,
@@ -85,10 +94,11 @@ const userSchema = new Schema<IUserDocument>(
     toJSON: {
       transform(_doc, ret) {
         delete ret.password;
+        delete ret.passwordResetToken;
         return ret;
       },
     },
-  }
+  },
 );
 
 //indexs
@@ -116,7 +126,7 @@ userSchema.pre("save", async function () {
 
 //compare password with hashed password
 userSchema.methods.comparePassword = async function (
-  candidatePassword: string
+  candidatePassword: string,
 ): Promise<boolean> {
   if (!this.password) return false;
   return bcrypt.compare(candidatePassword, this.password as string);
@@ -128,7 +138,7 @@ userSchema.methods.isLocked = function (): boolean {
 
 //increment login attempts
 userSchema.methods.incrementLoginAttempts = async function (
-  this: IUserDocument
+  this: IUserDocument,
 ): Promise<void> {
   const MAX_LOGIN_ATTEMPTS = 5;
   const LOCK_TIME = 15 * 60 * 1000;
@@ -160,7 +170,7 @@ userSchema.methods.incrementLoginAttempts = async function (
 
 //reset login attempts
 userSchema.methods.resetLoginAttempts = async function (
-  this: IUserDocument
+  this: IUserDocument,
 ): Promise<void> {
   await this.updateOne({
     $set: { loginAttempts: 0, lastLogin: new Date() },
@@ -169,15 +179,34 @@ userSchema.methods.resetLoginAttempts = async function (
 };
 
 userSchema.statics.findByEmail = async function (
-  email: string
+  email: string,
 ): Promise<IUserDocument | null> {
   return await this.findOne({ email: email.toLowerCase() });
 };
 
+userSchema.methods.clearPasswordResetToken = async function (
+  this: IUserDocument,
+): Promise<void> {
+  await this.updateOne({
+    $unset: {
+      passwordResetToken: 1,
+      passwordResetExpires: 1,
+    },
+  });
+};
+
+userSchema.index(
+  { passwordResetExpires: 1 },
+  {
+    sparse: true,
+    expireAfterSeconds: 0,
+  },
+);
+
 // Create and export the model
 const User = mongoose.model<IUserDocument, Model<IUserDocument> & IUserModel>(
   "User",
-  userSchema
+  userSchema,
 );
 
 export default User;

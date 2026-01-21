@@ -1,5 +1,5 @@
 //helper function
-
+import crypto from "crypto";
 import {
   generateTokenPair,
   verifyRefreshToken,
@@ -9,6 +9,7 @@ import AppError from "../../errorHelper/AppError";
 import User from "../User/user.model";
 import {
   AuthProvider,
+  UserStatus,
   type ISafeUser,
   type IUserDocument,
 } from "../User/user.types";
@@ -34,6 +35,11 @@ const toSafeUser = (user: IUserDocument): ISafeUser => ({
   updatedAt: user.updatedAt,
 });
 
+//password Reset interface
+interface IPasswordResetToken {
+  token: string;
+  expires: Date;
+}
 //generate payload toke from user
 const createTokenPayload = (user: IUserDocument): ITokenPayload => ({
   userId: user._id.toString(),
@@ -43,7 +49,7 @@ const createTokenPayload = (user: IUserDocument): ITokenPayload => ({
 
 // register new user
 export const register = async (
-  input: IRegisterInput
+  input: IRegisterInput,
 ): Promise<{
   user: ISafeUser;
   accessToken: string;
@@ -82,7 +88,7 @@ export const register = async (
 
 //login user with email and password
 export const login = async (
-  input: ILoginInput
+  input: ILoginInput,
 ): Promise<{
   user: ISafeUser;
   accessToken: string;
@@ -90,7 +96,7 @@ export const login = async (
 }> => {
   const { email, password } = input;
   const user = await User.findOne({ email: email.toLowerCase() }).select(
-    "+password +refreshTokens"
+    "+password +refreshTokens",
   );
   if (!user) {
     throw new AppError("Invalid email or password", 401, {
@@ -103,13 +109,13 @@ export const login = async (
       ? Math.ceil((user.lockUntil.getTime() - Date.now()) / 60000)
       : 15;
     throw new AppError(
-      `Account is locked. Try again in +${lockTime.toString()} minutes`,
+      `Account is locked. Try again in ${lockTime.toString()} minutes`,
       423,
       {
         errorCode: "ACCOUNT_LOCKED",
         lockUntil: user.lockUntil,
         remainingMinutes: lockTime,
-      }
+      },
     );
   }
 
@@ -118,7 +124,7 @@ export const login = async (
     throw new AppError(
       "This account uses Google sign-in. Please login with Google.",
       400,
-      { errorCode: "NO_PASSWORD", provider: user.provider }
+      { errorCode: "NO_PASSWORD", provider: user.provider },
     );
   }
 
@@ -158,7 +164,7 @@ export const login = async (
 //refresh token
 
 export const refreshtoken = async (
-  token: string
+  token: string,
 ): Promise<{
   accessToken: string;
   refreshToken: string;
@@ -197,7 +203,7 @@ export const refreshtoken = async (
 //logot
 export const logout = async (
   userId: string,
-  refreshtoken?: string
+  refreshtoken?: string,
 ): Promise<void> => {
   const user = await User.findById(userId).select("+refreshTokens");
   if (!user) {
@@ -209,7 +215,7 @@ export const logout = async (
   if (refreshtoken) {
     //remove specific refresh token
     user.refreshTokens = user.refreshTokens.filter(
-      (token) => token !== refreshtoken
+      (token) => token !== refreshtoken,
     );
   } else {
     //logout from all device
@@ -231,7 +237,7 @@ export const logoutAllDevices = async (userId: string): Promise<void> => {
 
 export const changePassword = async (
   userId: string,
-  input: IChangePasswordInput
+  input: IChangePasswordInput,
 ): Promise<void> => {
   const { currentPassword, newPassword } = input;
   const user = await User.findById(userId).select("+password +refreshTokens");
@@ -246,7 +252,7 @@ export const changePassword = async (
     throw new AppError(
       "Cannot change password for accounts using social login",
       400,
-      { errorCode: "NO_PASSWORD", provider: user.provider }
+      { errorCode: "NO_PASSWORD", provider: user.provider },
     );
   }
   //verify current password
@@ -277,7 +283,7 @@ export const getCurrentUser = async (userId: string): Promise<ISafeUser> => {
 
 //google login
 export const googleAuth = async (
-  googleUserInfo: IGoogleUserInfo
+  googleUserInfo: IGoogleUserInfo,
 ): Promise<{
   user: ISafeUser;
   accessToken: string;
@@ -298,11 +304,12 @@ export const googleAuth = async (
       isEmailVerified: true,
     });
   } else if (user.provider !== AuthProvider.GOOGLE) {
-    user.provider = AuthProvider.GOOGLE;
-    user.providerId = providerId;
-    if (!user.avatar && picture) {
-      user.avatar = picture;
-    }
+    // Deny login - require user to link accounts explicitly
+    throw new AppError(
+      "An account with this email already exists. Please login with your password and link your Google account in settings.",
+      409,
+      { errorCode: "ACCOUNT_EXISTS", provider: user.provider },
+    );
   }
   const payload = createTokenPayload(user);
   const { accessToken, refreshToken } = generateTokenPair(payload);
@@ -323,5 +330,122 @@ export const googleAuth = async (
     user: toSafeUser(user),
     accessToken,
     refreshToken,
+  };
+};
+
+//generate password reset token
+const generateResetToken = (): {
+  plainToken: string;
+  hashedToken: string;
+  expiresAt: Date;
+} => {
+  const plainToken = crypto.randomBytes(32).toString("hex");
+  const hashedToken = crypto
+    .createHash("sha256")
+    .update(plainToken)
+    .digest("hex");
+
+  const expiresAt = new Date(Date.now() + 60 * 60 * 1000);
+
+  return { plainToken, hashedToken, expiresAt };
+};
+//hashes a plain reset token for verification
+const hashResetToken = (token: string): string => {
+  return crypto.createHash("sha256").update(token).digest("hex");
+};
+//forget password - generator reset token
+export const forgotPassword = async (
+  email: string,
+): Promise<{ resetToken: string; expiresAt: Date }> => {
+  const user = await User.findOne({ email: email.toLowerCase() });
+
+  if (!user) {
+    throw new AppError(
+      "If that email is registered, you will receive a password reset link",
+      200,
+      { errorCode: "EMAIL_SENT" },
+    );
+  }
+  // Check if user uses password-based auth
+  if (!user.password && user.provider !== AuthProvider.LOCAL) {
+    throw new AppError(
+      `This account uses ${user.provider} sign-in. Please login with ${user.provider}.`,
+      400,
+      { errorCode: "OAUTH_ACCOUNT", provider: user.provider },
+    );
+  }
+
+  //check account status
+  if (
+    user.status === UserStatus.BLOCKED ||
+    user.status === UserStatus.INACTIVE
+  ) {
+    throw new AppError(
+      "This account is not active. Please contact support.",
+      403,
+      { errorCode: "ACCOUNT_NOT_ACTIVE", status: user.status },
+    );
+  }
+  //generate secure token
+  const { plainToken, hashedToken, expiresAt } = generateResetToken();
+  //store hashed token in database
+  user.passwordResetToken = hashedToken;
+  user.passwordResetExpires = expiresAt;
+  await user.save({ validateBeforeSave: false });
+  return {
+    resetToken: plainToken,
+    expiresAt,
+  };
+};
+
+//reset password
+export const resetPasswoed = async (
+  token: string,
+  newPassword: string,
+): Promise<void> => {
+  //hash the incoming token to compare with stored hash
+  const hashedToken = hashResetToken(token);
+  //find user with valid reset token
+  const user = await User.findOne({
+    passwordResetToken: hashedToken,
+    passwordResetExpires: { $gt: new Date() },
+  }).select(
+    "+passwordResetToken +passwordResetExpires +password +refreshTokens",
+  );
+  if (!user) {
+    throw new AppError("Password reset token is invalid or has expired", 400, {
+      errorCode: "INVALID_OR_EXPIRED_TOKEN",
+    });
+  }
+
+  //update password (will be hashed by pre-save hook)
+  user.password = newPassword;
+  //clear reset token fields
+  user.passwordResetToken = null;
+  user.passwordResetExpires = null;
+  //invalid all session for security
+  user.refreshTokens = [];
+  //update password changed timestamp
+  user.passwordChangedAt = new Date();
+  await user.save();
+};
+//Verifies if a reset token is valid without resetting password
+export const verifyResetToken = async (
+  token: string,
+): Promise<{ valid: boolean; email?: string }> => {
+  const hashedToken = hashResetToken(token);
+
+  const user = await User.findOne({
+    passwordResetToken: hashedToken,
+    passwordResetExpires: { $gt: new Date() },
+  }).select("+passwordResetToken +passwordResetExpires");
+
+  if (!user) {
+    return { valid: false };
+  }
+
+  return {
+    valid: true,
+    email: user.email,
   };
 };

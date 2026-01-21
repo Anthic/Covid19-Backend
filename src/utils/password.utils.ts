@@ -1,5 +1,11 @@
 import bcrypt from "bcrypt";
 import { randomInt } from "crypto";
+import passport from "passport";
+import { Strategy as GoogleStrategy } from "passport-google-oauth20";
+
+import type { IGoogleUserInfo } from "../app/Modules/Auth/auth.types";
+import { ConfigEnvVariable } from "../config/env";
+
 
 const SALT_ROUNDS = 12;
 const MIN_PASSWORD_LENGTH = 8;
@@ -138,5 +144,44 @@ export const generateRandomPassword = ({
 
   return passwordChars.join("");
 };
+//initialize passport with Google OAuth strategy
+export const initializePassport = (): void => {
+  passport.use(
+    new GoogleStrategy(
+      {
+        clientID: ConfigEnvVariable.GOOGLE_CLIENT_ID,
+        clientSecret: ConfigEnvVariable.GOOGLE_CLIENT_SECRET,
+        callbackURL: ConfigEnvVariable.GOOGLE_CALLBACK_URL,
+        scope: ["profile", "email"],
+      },
+      (_accessToken, _refreshToken, profile, done) => {
+        try {
+          //transform google profile to our formate
+          const googleUser: IGoogleUserInfo = {
+            sub: profile.id,
+            email: profile.emails?.[0]?.value ?? "",
+            name: profile.displayName || "",
+            picture: profile.photos?.[0]?.value,
+            email_verified: profile.emails?.[0]?.verified ?? false,
+          };
+          done(null, googleUser);
+        } catch (error) {
+          done(error, undefined);
+        }
+      },
+    ),
+  );
+
+  //serialize user for the session
+  passport.serializeUser((user, done) => {
+    done(null, user);
+  });
+  // Deserialize user from the session
+  passport.deserializeUser((user: Express.User, done) => {
+    done(null, user);
+  });
+};
+export default passport
+
 
 

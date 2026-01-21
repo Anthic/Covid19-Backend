@@ -2,7 +2,6 @@ import jwt, { type JwtPayload, type SignOptions } from "jsonwebtoken";
 import type { UserRole } from "../app/Modules/User/user.types";
 import { ConfigEnvVariable } from "../config/env";
 import AppError from "../app/errorHelper/AppError";
-import { fi } from "zod/v4/locales";
 
 export interface ITokenPayload {
   userId: string;
@@ -53,7 +52,7 @@ export const verifyAccessToken = (token: string): IDecodedToken => {
   try {
     const decoded = jwt.verify(
       token,
-      ConfigEnvVariable.JWT_ACCESS_SECRET
+      ConfigEnvVariable.JWT_ACCESS_SECRET,
     ) as IDecodedToken;
     return decoded;
   } catch (error) {
@@ -78,7 +77,7 @@ export const verifyRefreshToken = (token: string): IDecodedToken => {
   try {
     const decoded = jwt.verify(
       token,
-      ConfigEnvVariable.JWT_REFRESH_SECRET
+      ConfigEnvVariable.JWT_REFRESH_SECRET,
     ) as IDecodedToken;
     return decoded;
   } catch (error) {
@@ -100,7 +99,7 @@ export const verifyRefreshToken = (token: string): IDecodedToken => {
 //utility function
 //extract token from authorization header
 export const extractTokenFromHeader = (
-  authHeader: string | undefined
+  authHeader: string | undefined,
 ): string | null => {
   if (!authHeader?.startsWith("Bearer ")) {
     return null;
@@ -112,7 +111,7 @@ export const extractTokenFromHeader = (
 //check if token is about to expire wihtin 5 min
 export const isTokenExpiringSoon = (
   decoded: IDecodedToken,
-  thresholdMinutes = 5
+  thresholdMinutes = 5,
 ): boolean => {
   const thresholdSeconds = thresholdMinutes * 60;
   const currentTime = Math.floor(Date.now() / 1000);
@@ -133,3 +132,4 @@ export const getTokenExpirationDate = (token: string): Date | null => {
   }
   return new Date(decoded.exp * 1000);
 };
+
