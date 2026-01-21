@@ -108,7 +108,7 @@ export const extractTokenFromHeader = (
   return token || null;
 };
 
-//check if token is about to expire wihtin 5 min
+//check if token is about to expire within 5 min
 export const isTokenExpiringSoon = (
   decoded: IDecodedToken,
   thresholdMinutes = 5,

@@ -1,5 +1,5 @@
 import { Router } from "express";
-import { UserController } from "./use.controller";
+import { UserController } from "./user.controller";
 import {
   authenticate,
   isAdmin,

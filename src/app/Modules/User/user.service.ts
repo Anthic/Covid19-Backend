@@ -58,7 +58,11 @@ const getAllUsers = async (filters?: {
   try {
     //exact query
     const [users, total] = await Promise.all([
-      User.find(query).skip(skip).limit(limit).lean().sort({ createdAt: -1 }),
+      User.find(query)
+        .skip(skip)
+        .limit(safeLimit)
+        .lean()
+        .sort({ createdAt: -1 }),
       User.countDocuments(query),
     ]);
     //calculate page safty
@@ -71,7 +75,7 @@ const getAllUsers = async (filters?: {
       totalPages,
     };
   } catch (error) {
-    throw new AppError("Failed to retrieve users from database", 404, {
+    throw new AppError("Failed to retrieve users from database", 500, {
       errorCode: "USERS_RETRIEVE_FAILED",
       error,
     });
@@ -100,6 +104,19 @@ const updateUser = async (
     throw new AppError("User not found", 404, {
       errorCode: "USER_NOT_FOUND",
     });
+  }
+
+  if (user.role === UserRole.SUPER_ADMIN) {
+    if (updates.role !== undefined && updates.role !== UserRole.SUPER_ADMIN) {
+      throw new AppError("Cannot demote super admin account", 403, {
+        errorCode: "CANNOT_DEMOTE_SUPER_ADMIN",
+      });
+    }
+    if (updates.status !== undefined && updates.status === UserStatus.BLOCKED) {
+      throw new AppError("Cannot block super admin account", 403, {
+        errorCode: "CANNOT_BLOCK_SUPER_ADMIN",
+      });
+    }
   }
   //update allowed fields
   if (updates.name !== undefined) user.name = updates.name;
@@ -164,7 +181,12 @@ const changeUserRole = async (
       errorCode: "USER_NOT_FOUND",
     });
   }
-
+  // Prevent demoting super admin
+  if (user.role === UserRole.SUPER_ADMIN && role !== UserRole.SUPER_ADMIN) {
+    throw new AppError("Cannot demote super admin account", 403, {
+      errorCode: "CANNOT_DEMOTE_SUPER_ADMIN",
+    });
+  }
   user.role = role;
   await user.save();
 

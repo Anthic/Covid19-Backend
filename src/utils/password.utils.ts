@@ -162,7 +162,7 @@ export const initializePassport = (): void => {
             email: profile.emails?.[0]?.value ?? "",
             name: profile.displayName || "",
             picture: profile.photos?.[0]?.value,
-            email_verified: profile.emails?.[0]?.verified ?? false,
+            email_verified: profile.emails?.[0]?.verified === true,
           };
           done(null, googleUser);
         } catch (error) {

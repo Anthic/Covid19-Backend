@@ -35,11 +35,8 @@ const toSafeUser = (user: IUserDocument): ISafeUser => ({
   updatedAt: user.updatedAt,
 });
 
-//password Reset interface
-interface IPasswordResetToken {
-  token: string;
-  expires: Date;
-}
+
+
 //generate payload toke from user
 const createTokenPayload = (user: IUserDocument): ITokenPayload => ({
   userId: user._id.toString(),
@@ -310,6 +307,15 @@ export const googleAuth = async (
       409,
       { errorCode: "ACCOUNT_EXISTS", provider: user.provider },
     );
+  } else if (
+    user.status === UserStatus.BLOCKED ||
+    user.status === UserStatus.INACTIVE
+  ) {
+    throw new AppError(
+      "This account is not active. Please contact support.",
+      403,
+      { errorCode: "ACCOUNT_NOT_ACTIVE", status: user.status },
+    );
   }
   const payload = createTokenPayload(user);
   const { accessToken, refreshToken } = generateTokenPair(payload);
@@ -325,7 +331,6 @@ export const googleAuth = async (
   user.refreshTokens = refreshTokens;
   user.lastLogin = new Date();
   await user.save();
-
   return {
     user: toSafeUser(user),
     accessToken,
@@ -367,7 +372,7 @@ export const forgotPassword = async (
     );
   }
   // Check if user uses password-based auth
-  if (!user.password && user.provider !== AuthProvider.LOCAL) {
+  if (user.provider !== AuthProvider.LOCAL) {
     throw new AppError(
       `This account uses ${user.provider} sign-in. Please login with ${user.provider}.`,
       400,
@@ -399,7 +404,7 @@ export const forgotPassword = async (
 };
 
 //reset password
-export const resetPasswoed = async (
+export const resetPassword = async (
   token: string,
   newPassword: string,
 ): Promise<void> => {

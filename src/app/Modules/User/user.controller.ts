@@ -96,7 +96,7 @@ const changeUserStatus = catchAsync(
     if (!id || !status) {
       res.status(400).json({
         success: false,
-        message: "User ID is required",
+         message: !id ? "User ID is required" : "Status is required",
       });
       return;
     }
@@ -121,7 +121,8 @@ const changeUserRole = catchAsync(
     if (!id || !role) {
       res.status(400).json({
         success: false,
-        message: "Role is required",
+        message: !id ? "User ID is required" : "Role is required",
+
       });
       return;
     }

@@ -16,10 +16,10 @@ import type { IAuthRequest, TypedRequestBody } from "./auth.types";
 export const register = catchAsync(
   async (
     req: TypedRequestBody<RegisterInput>,
-    res: Response
+    res: Response,
   ): Promise<void> => {
     const { user, accessToken, refreshToken } = await AuthService.register(
-      req.body
+      req.body,
     );
     setAuthCookies(res, accessToken, refreshToken);
     res.status(201).json({
@@ -30,13 +30,13 @@ export const register = catchAsync(
         accessToken,
       },
     });
-  }
+  },
 );
 
 export const login = catchAsync(
   async (req: TypedRequestBody<LoginInput>, res: Response): Promise<void> => {
     const { user, accessToken, refreshToken } = await AuthService.login(
-      req.body
+      req.body,
     );
     //set cookies
     setAuthCookies(res, accessToken, refreshToken);
@@ -48,11 +48,11 @@ export const login = catchAsync(
         accessToken,
       },
     });
-  }
+  },
 );
 // refresh token helper function that help to control the error
 function getTokenFromRequest(
-  req: TypedRequestBody<{ refreshToken?: string }>
+  req: TypedRequestBody<{ refreshToken?: string }>,
 ): string | null {
   const bodyToken = req.body.refreshToken;
   const cookieToken = req.cookies[COOKIE_NAMES.REFRESH_TOKEN];
@@ -70,7 +70,7 @@ function getTokenFromRequest(
 export const refreshToken = catchAsync(
   async (
     req: TypedRequestBody<{ refreshToken?: string }>,
-    res: Response
+    res: Response,
   ): Promise<void> => {
     const token = getTokenFromRequest(req);
 
@@ -94,13 +94,13 @@ export const refreshToken = catchAsync(
         accessToken,
       },
     });
-  }
+  },
 );
 
 //logout from current device
 // Helper function - safely get refresh token from logout request
 function getRefreshTokenForLogout(
-  req: IAuthRequest & { body?: Record<string, unknown> }
+  req: IAuthRequest & { body?: Record<string, unknown> },
 ): string | undefined {
   // Try to get from body
   const bodyToken = req.body.refreshToken;
@@ -121,7 +121,7 @@ function getRefreshTokenForLogout(
 export const logout = catchAsync(
   async (
     req: IAuthRequest & { body?: Record<string, unknown> },
-    res: Response
+    res: Response,
   ): Promise<void> => {
     // Get user ID (guaranteed by authenticate middleware)
     const userId = req.userId;
@@ -149,7 +149,7 @@ export const logout = catchAsync(
       success: true,
       message: "Logout successful",
     });
-  }
+  },
 );
 
 // logout from all device
@@ -172,14 +172,14 @@ export const logoutAll = catchAsync(
       success: true,
       message: "Logged out from all devices successfully",
     });
-  }
+  },
 );
 
 //change password
 export const changePassword = catchAsync(
   async (
     req: IAuthRequest & { body: ChangePasswordInput },
-    res: Response
+    res: Response,
   ): Promise<void> => {
     // req.userId guaranteed by authenticate middleware
     const userId = req.userId;
@@ -200,7 +200,7 @@ export const changePassword = catchAsync(
     await AuthService.changePassword(userId, {
       currentPassword,
       newPassword,
-      confirmPassword: newPassword, 
+      confirmPassword: req.body.confirmPassword,
     });
 
     // Clear all auth cookies for security
@@ -211,7 +211,7 @@ export const changePassword = catchAsync(
       success: true,
       message: "Password changed successfully. Please login again.",
     });
-  }
+  },
 );
 //get current user
 export const getCurrentUser = catchAsync(
@@ -234,5 +234,5 @@ export const getCurrentUser = catchAsync(
         user,
       },
     });
-  }
+  },
 );

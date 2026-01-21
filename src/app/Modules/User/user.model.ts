@@ -195,14 +195,6 @@ userSchema.methods.clearPasswordResetToken = async function (
   });
 };
 
-userSchema.index(
-  { passwordResetExpires: 1 },
-  {
-    sparse: true,
-    expireAfterSeconds: 0,
-  },
-);
-
 // Create and export the model
 const User = mongoose.model<IUserDocument, Model<IUserDocument> & IUserModel>(
   "User",
