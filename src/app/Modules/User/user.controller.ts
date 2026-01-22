@@ -70,7 +70,7 @@ const updateUser = catchAsync(
       updates.avatar = null;
     }
 
-    // ✅ ENUM SAFE CHECK
+    //  ENUM SAFE CHECK
     if (isEnumValue(UserStatus, status)) {
       updates.status = status;
     }

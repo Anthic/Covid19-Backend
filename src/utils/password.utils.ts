@@ -1,11 +1,5 @@
 import bcrypt from "bcrypt";
 import { randomInt } from "crypto";
-import passport from "passport";
-import { Strategy as GoogleStrategy } from "passport-google-oauth20";
-
-import type { IGoogleUserInfo } from "../app/Modules/Auth/auth.types";
-import { ConfigEnvVariable } from "../config/env";
-
 
 const SALT_ROUNDS = 12;
 const MIN_PASSWORD_LENGTH = 8;
@@ -18,7 +12,7 @@ export const hasPassword = async (password: string): Promise<string> => {
 //compare password with hash
 export const comparePassword = async (
   password: string,
-  hash: string
+  hash: string,
 ): Promise<boolean> => {
   return bcrypt.compare(password, hash);
 };
@@ -33,7 +27,7 @@ export interface IPasswordStrength {
 
 //validation password strength
 export const validatePasswordStrength = (
-  password: string
+  password: string,
 ): IPasswordStrength => {
   const errors: string[] = [];
   let score = 0;
@@ -78,13 +72,13 @@ export const validatePasswordStrength = (
 };
 
 //Generate Random password
-interface PasswordOptions  {
+interface PasswordOptions {
   length?: number;
   includeLowercase?: boolean;
   includeUppercase?: boolean;
   includeNumbers?: boolean;
   includeSpecial?: boolean;
-};
+}
 
 const CHAR_SETS = {
   lowercase: "abcdefghijklmnopqrstuvwxyz",
@@ -135,7 +129,7 @@ export const generateRandomPassword = ({
   // Fisher–Yates shuffle for randomness
   for (let i = passwordChars.length - 1; i > 0; i--) {
     const j = randomInt(i + 1);
-    const temp = passwordChars[i]; 
+    const temp = passwordChars[i];
     // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
     passwordChars[i] = passwordChars[j]!;
     // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
@@ -144,44 +138,3 @@ export const generateRandomPassword = ({
 
   return passwordChars.join("");
 };
-//initialize passport with Google OAuth strategy
-export const initializePassport = (): void => {
-  passport.use(
-    new GoogleStrategy(
-      {
-        clientID: ConfigEnvVariable.GOOGLE_CLIENT_ID,
-        clientSecret: ConfigEnvVariable.GOOGLE_CLIENT_SECRET,
-        callbackURL: ConfigEnvVariable.GOOGLE_CALLBACK_URL,
-        scope: ["profile", "email"],
-      },
-      (_accessToken, _refreshToken, profile, done) => {
-        try {
-          //transform google profile to our formate
-          const googleUser: IGoogleUserInfo = {
-            sub: profile.id,
-            email: profile.emails?.[0]?.value ?? "",
-            name: profile.displayName || "",
-            picture: profile.photos?.[0]?.value,
-            email_verified: profile.emails?.[0]?.verified === true,
-          };
-          done(null, googleUser);
-        } catch (error) {
-          done(error, undefined);
-        }
-      },
-    ),
-  );
-
-  //serialize user for the session
-  passport.serializeUser((user, done) => {
-    done(null, user);
-  });
-  // Deserialize user from the session
-  passport.deserializeUser((user: Express.User, done) => {
-    done(null, user);
-  });
-};
-export default passport
-
-
-
