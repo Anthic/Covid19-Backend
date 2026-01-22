@@ -5,14 +5,13 @@
 
 import { z } from "zod";
 
-
 /**
  * Email schema
  */
 const emailSchema = z
-  .string()
+  .email("Please enter a valid email address")
   .min(1, "Email is required")
-  
+
   .trim()
   .toLowerCase();
 /**
@@ -27,7 +26,7 @@ const passwordSchema = z
   .regex(/\d/, "Password must contain at least one number")
   .regex(
     /[!@#$%^&*(),.?":{}|<>]/,
-    "Password must contain at least one special character"
+    "Password must contain at least one special character",
   );
 
 /**
