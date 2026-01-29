@@ -9,9 +9,7 @@ import { z } from "zod";
  * Email schema
  */
 const emailSchema = z
-  .email("Please enter a valid email address")
-  .min(1, "Email is required")
-
+  .email({ message: "Please enter a valid email address" })
   .trim()
   .toLowerCase();
 /**

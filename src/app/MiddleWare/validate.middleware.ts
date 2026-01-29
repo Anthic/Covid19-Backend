@@ -1,4 +1,4 @@
-/* eslint-disable @typescript-eslint/no-unsafe-assignment */
+﻿/* eslint-disable @typescript-eslint/no-unsafe-assignment */
 import type { NextFunction, Request, Response } from "express";
 import { z } from "zod";
 import AppError from "../errorHelper/AppError";
@@ -21,11 +21,22 @@ export const validate =
         params: req.params,
         cookies: req.cookies,
       });
-      if (validatedData.body !== undefined) req.body = validatedData.body;
-      if (validatedData.query !== undefined) req.query = validatedData.query as typeof req.query;
-      if (validatedData.params !== undefined) req.params = validatedData.params as typeof req.params;
-      if (validatedData.cookies !== undefined) req.cookies = validatedData.cookies as typeof req.cookies;
-      
+      if (validatedData.body !== undefined) {
+        req.body = validatedData.body;
+      }
+
+      if (validatedData.query !== undefined) {
+        req.query = validatedData.query as typeof req.query;
+      }
+
+      if (validatedData.params !== undefined) {
+        req.params = validatedData.params as typeof req.params;
+      }
+
+      if (validatedData.cookies !== undefined) {
+        req.cookies = validatedData.cookies as typeof req.cookies;
+      }
+
       next();
     } catch (error) {
       if (error instanceof z.ZodError) {
@@ -38,7 +49,7 @@ export const validate =
           new AppError("Validation failed", 400, {
             errorCode: "VALIDATION_ERROR",
             errors,
-          })
+          }),
         );
         return;
       }
@@ -64,7 +75,7 @@ export const validateBody =
           new AppError("Validation failed", 400, {
             errorCode: "VALIDATION_ERROR",
             errors,
-          })
+          }),
         );
         return;
       }

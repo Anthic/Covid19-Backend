@@ -7,11 +7,11 @@ import {
 } from "../../MiddleWare/auth.middleware";
 import { validate } from "../../MiddleWare/validate.middleware";
 import {
+  
   getUsersSchema,
   getUserByIdSchema,
   updateUserSchema,
-  
-   adminUpdateUserSchema,
+  adminUpdateUserSchema,
   updateUserRoleSchema,
   updateUserStatusSchema,
   deleteUserSchema,
@@ -19,7 +19,9 @@ import {
 
 const userRouter = Router();
 
-// PUBLIC ROUTES (Authenticated Users)
+// ========================================
+// AUTHENTICATED USER ROUTES (Self)
+// ========================================
 
 // Get current user profile
 userRouter.get("/me", authenticate, UserController.getMyProfile);
@@ -32,9 +34,11 @@ userRouter.patch(
   UserController.updateMyProfile,
 );
 
-// ADMIN ROUTES
+// ========================================
+// ADMIN ROUTES - STATIC ROUTES FIRST
+// ========================================
 
-// Get all users with filters
+// Get all users with pagination & filters
 userRouter.get(
   "/",
   authenticate,
@@ -43,54 +47,67 @@ userRouter.get(
   UserController.getAllUsers,
 );
 
-// Get user statistics
-userRouter.get("/stats", authenticate, isAdmin, UserController.getUserStats);
+// Create new user (Admin only)
+
+// Get user statistics (must be before /:id)
+userRouter.get(
+  "/stats",
+  authenticate,
+  isAdmin,
+  UserController.getUserStats,
+);
+
+// ========================================
+// ADMIN ROUTES - DYNAMIC ROUTES (with :id)
+// ========================================
 
 // Get user by ID
 userRouter.get(
-  "/:id",
+  "/:userId",
   authenticate,
   isAdmin,
   validate(getUserByIdSchema),
   UserController.getUserById,
 );
 
-// Update user
+// Update user (partial update)
 userRouter.patch(
-  "/:id",
+  "/:userId",
   authenticate,
   isAdmin,
-  validate( adminUpdateUserSchema),
+  validate(adminUpdateUserSchema),
   UserController.updateUser,
 );
 
-// Update user status
+// Update user status (sub-resource route)
 userRouter.patch(
-  "/:id/status",
+  "/:userId/status",
   authenticate,
   isAdmin,
   validate(updateUserStatusSchema),
   UserController.changeUserStatus,
 );
 
-// Delete user
-userRouter.delete(
-  "/:id",
-  authenticate,
-  isAdmin,
-  validate(deleteUserSchema),
-  UserController.deleteUser,
-);
-
+// ========================================
 // SUPER ADMIN ROUTES
+// ========================================
 
-// Update user role
+// Update user role (Super Admin only)
 userRouter.patch(
-  "/:id/role",
+  "/:userId/role",
   authenticate,
   isSuperAdmin,
   validate(updateUserRoleSchema),
   UserController.changeUserRole,
+);
+
+// Delete user (Admin only)
+userRouter.delete(
+  "/:userId",
+  authenticate,
+  isAdmin,
+  validate(deleteUserSchema),
+  UserController.deleteUser,
 );
 
 export default userRouter;

@@ -1,4 +1,4 @@
-import type { NextFunction, Response } from "express";
+import type { NextFunction, Request, Response } from "express";
 import {
   extractTokenFromHeader,
   verifyAccessToken,
@@ -7,10 +7,10 @@ import { COOKIE_NAMES } from "../../utils/cookie.utils";
 import AppError from "../errorHelper/AppError";
 import User from "../Modules/User/user.model";
 import { UserRole, UserStatus } from "../Modules/User/user.types";
-import type { IAuthRequest } from "../Modules/Auth/auth.types";
+
 
 export const authenticate = async (
-  req: IAuthRequest,
+  req: Request,
   _res: Response,
   next: NextFunction
 ): Promise<void> => {
@@ -70,7 +70,7 @@ export const authenticate = async (
 
 //authorization user by role
 export const authorize = (...allowedRoles: UserRole[]) => {
-  return (req: IAuthRequest, _res: Response, next: NextFunction): void => {
+  return (req: Request, _res: Response, next: NextFunction): void => {
     if (!req.user) {
       next(
         new AppError("Authentication required", 401, {
@@ -85,7 +85,7 @@ export const authorize = (...allowedRoles: UserRole[]) => {
         new AppError("You do not have permission to perform this action", 403, {
           errorCode: "FORBIDDEN",
           requiredRoles: allowedRoles,
-          userRole: req.user.role,
+          
         })
       );
       return;

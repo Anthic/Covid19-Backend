@@ -1,4 +1,4 @@
-import type { Response } from "express";
+import type {  Response } from "express";
 import { catchAsync } from "../../../utils/catchAsync";
 import type { IAuthRequest } from "../Auth/auth.types";
 import { UserRole, UserStatus, type IUpdateUserInput } from "./user.types";

@@ -94,10 +94,34 @@ const getUserById = async (userId: string): Promise<ISafeUser> => {
   return toSafeUser(user);
 };
 
+//helper function for super admin validation
+const validateSuperAdminModification = (
+  targetUser: IUserDocument,
+  updates: IUpdateUserInput,
+  requestingUserRole?: UserRole,
+): void => {
+  if (targetUser.role !== UserRole.SUPER_ADMIN) return;
+  if (requestingUserRole !== UserRole.SUPER_ADMIN) {
+    throw new AppError("Cannot modify super admin account", 403, {
+      errorCode: "CANNOT_MODIFY_SUPER_ADMIN",
+    });
+  }
+  if (updates.role !== undefined && updates.role !== UserRole.SUPER_ADMIN) {
+    throw new AppError("Cannot demote super admin account", 403, {
+      errorCode: "CANNOT_DEMOTE_SUPER_ADMIN",
+    });
+  }
+  if (updates.status === UserStatus.BLOCKED) {
+    throw new AppError("Cannot block super admin account", 403, {
+      errorCode: "CANNOT_BLOCK_SUPER_ADMIN",
+    });
+  }
+};
 //update user (Admin only)
 const updateUser = async (
   userId: string,
   updates: IUpdateUserInput,
+  requestingUserRole?: UserRole,
 ): Promise<ISafeUser> => {
   const user = await User.findById(userId);
   if (!user) {
@@ -106,18 +130,7 @@ const updateUser = async (
     });
   }
 
-  if (user.role === UserRole.SUPER_ADMIN) {
-    if (updates.role !== undefined && updates.role !== UserRole.SUPER_ADMIN) {
-      throw new AppError("Cannot demote super admin account", 403, {
-        errorCode: "CANNOT_DEMOTE_SUPER_ADMIN",
-      });
-    }
-    if (updates.status !== undefined && updates.status === UserStatus.BLOCKED) {
-      throw new AppError("Cannot block super admin account", 403, {
-        errorCode: "CANNOT_BLOCK_SUPER_ADMIN",
-      });
-    }
-  }
+  validateSuperAdminModification(user, updates, requestingUserRole);
   //update allowed fields
   if (updates.name !== undefined) user.name = updates.name;
   if (updates.avatar !== undefined) user.avatar = updates.avatar;
@@ -143,10 +156,29 @@ const deleteUser = async (userId: string): Promise<void> => {
   }
   await User.findByIdAndDelete(userId);
 };
+
+const validatechangeUserstatus = (
+  targetUser: IUserDocument,
+  status: UserStatus,
+  requestingUserRole?: UserRole,
+): void => {
+  if (targetUser.role !== UserRole.SUPER_ADMIN) return;
+  if (requestingUserRole !== UserRole.SUPER_ADMIN) {
+    throw new AppError("Cannot modify super admin account", 403, {
+      errorCode: "CANNOT_MODIFY_SUPER_ADMIN",
+    });
+  }
+  if (status === UserStatus.BLOCKED) {
+    throw new AppError("Cannot block super admin account", 403, {
+      errorCode: "CANNOT_BLOCK_SUPER_ADMIN",
+    });
+  }
+};
 //change user status(admin only)
 const changeUserStatus = async (
   userId: string,
   status: UserStatus,
+  requestingUserRole?: UserRole,
 ): Promise<ISafeUser> => {
   const user = await User.findById(userId);
 
@@ -157,12 +189,7 @@ const changeUserStatus = async (
   }
 
   // Prevent blocking super admin
-  if (user.role === UserRole.SUPER_ADMIN && status === UserStatus.BLOCKED) {
-    throw new AppError("Cannot block super admin account", 403, {
-      errorCode: "CANNOT_BLOCK_SUPER_ADMIN",
-    });
-  }
-
+ validatechangeUserstatus(user,status, requestingUserRole)
   user.status = status;
   await user.save();
 

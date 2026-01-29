@@ -39,6 +39,7 @@ export interface IUser {
   passwordChangedAt?: Date | null;
   passwordResetToken?: string | null;
   passwordResetExpires?: Date | null;
+  tokenVersion: number;
   createdAt: Date;
   updatedAt: Date;
 }

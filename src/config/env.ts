@@ -36,10 +36,12 @@ const loadEnvVariables = (): IConfigEnv => {
     "JWT_REFRESH_EXPIRES_IN",
     "GOOGLE_CLIENT_ID",
     "GOOGLE_CLIENT_SECRET",
+    "GOOGLE_CALLBACK_URL",
+    "CLIENT_URL",
   ];
   requireEnvVariables.forEach((envVar) => {
     if (!process.env[envVar]) {
-      throw new Error(`Enviroment variabale ${envVar} is not define`);
+      throw new Error(`Environment variable ${envVar} is not defined`);
     }
   });
   const isProduction = process.env.NODE_ENV === "production";
@@ -67,6 +69,7 @@ const loadEnvVariables = (): IConfigEnv => {
     COOKIE_SAME_SITE: isProduction ? "strict" : "lax",
   };
 };
+
 export const ConfigEnvVariable: IConfigEnv = loadEnvVariables();
 
 export type { IConfigEnv };

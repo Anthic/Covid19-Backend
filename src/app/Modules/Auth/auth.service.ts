@@ -40,6 +40,7 @@ const createTokenPayload = (user: IUserDocument): ITokenPayload => ({
   userId: user._id.toString(),
   email: user.email,
   role: user.role,
+  tokenVersion: user.tokenVersion || 0,
 });
 
 // register new user

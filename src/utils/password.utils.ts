@@ -5,7 +5,7 @@ const SALT_ROUNDS = 12;
 const MIN_PASSWORD_LENGTH = 8;
 
 // hash password
-export const hasPassword = async (password: string): Promise<string> => {
+export const hashPassword = async (password: string): Promise<string> => {
   return bcrypt.hash(password, SALT_ROUNDS);
 };
 
@@ -16,7 +16,12 @@ export const comparePassword = async (
 ): Promise<boolean> => {
   return bcrypt.compare(password, hash);
 };
-
+export const verifyPassword = async (
+  password: string,
+  hash: string,
+): Promise<boolean> => {
+  return bcrypt.compare(password, hash);
+};
 //password validation
 // password strength requirements
 export interface IPasswordStrength {

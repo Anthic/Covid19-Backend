@@ -87,6 +87,10 @@ const userSchema = new Schema<IUserDocument>(
       default: null,
       select: false,
     },
+    tokenVersion: {
+      type: Number,
+      default: 0,
+    },
   },
   {
     timestamps: true,

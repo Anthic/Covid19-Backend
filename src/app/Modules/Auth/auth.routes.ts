@@ -9,12 +9,13 @@ import {
   registerSchema,
 } from "./auth.validation";
 import { authenticate } from "../../MiddleWare/auth.middleware";
+import { loginLimiter, refreshTokenLimiter, registerLimiter } from "../../MiddleWare/rateLimiter.middleware";
 const authRouter = Router();
 //public route
-authRouter.post("/register", validate(registerSchema), AuthController.register);
-authRouter.post("/login", validate(loginSchema), AuthController.login);
+authRouter.post("/register",registerLimiter ,validate(registerSchema), AuthController.register);
+authRouter.post("/login", loginLimiter,validate(loginSchema), AuthController.login);
 authRouter.post(
-  "/refresh-token",
+  "/refresh-token",refreshTokenLimiter,
   validate(refreshTokenSchema),
   AuthController.refreshToken
 );

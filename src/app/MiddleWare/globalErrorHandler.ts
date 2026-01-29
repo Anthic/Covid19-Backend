@@ -1,8 +1,8 @@
 
 
-import type { NextFunction, Response } from "express";
-// eslint-disable-next-line @typescript-eslint/no-unused-vars
-import { Error as MongooseError } from "mongoose";
+import type {  Response } from "express";
+
+
 import AppError from "../errorHelper/AppError";
 import { ConfigEnvVariable } from "../../config/env";
 import type {
@@ -364,7 +364,7 @@ export const globalErrorHandler = (
   error: unknown,
   req: IRequestWithId,
   res: Response,
-  _next: NextFunction
+  
 ): void => {
   const processedError = processError(error);
   const context: IErrorLogContext = {
