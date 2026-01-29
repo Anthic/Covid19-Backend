@@ -157,7 +157,7 @@ const deleteUser = async (userId: string): Promise<void> => {
   await User.findByIdAndDelete(userId);
 };
 
-const validatechangeUserstatus = (
+const validateChangeUserStatus = (
   targetUser: IUserDocument,
   status: UserStatus,
   requestingUserRole?: UserRole,
@@ -173,8 +173,7 @@ const validatechangeUserstatus = (
       errorCode: "CANNOT_BLOCK_SUPER_ADMIN",
     });
   }
-};
-//change user status(admin only)
+}; //change user status(admin only)
 const changeUserStatus = async (
   userId: string,
   status: UserStatus,
@@ -189,7 +188,7 @@ const changeUserStatus = async (
   }
 
   // Prevent blocking super admin
- validatechangeUserstatus(user,status, requestingUserRole)
+  validateChangeUserStatus(user, status, requestingUserRole);
   user.status = status;
   await user.save();
 

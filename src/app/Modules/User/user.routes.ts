@@ -7,7 +7,6 @@ import {
 } from "../../MiddleWare/auth.middleware";
 import { validate } from "../../MiddleWare/validate.middleware";
 import {
-  
   getUsersSchema,
   getUserByIdSchema,
   updateUserSchema,
@@ -47,15 +46,8 @@ userRouter.get(
   UserController.getAllUsers,
 );
 
-// Create new user (Admin only)
-
 // Get user statistics (must be before /:id)
-userRouter.get(
-  "/stats",
-  authenticate,
-  isAdmin,
-  UserController.getUserStats,
-);
+userRouter.get("/stats", authenticate, isAdmin, UserController.getUserStats);
 
 // ========================================
 // ADMIN ROUTES - DYNAMIC ROUTES (with :id)
@@ -101,13 +93,12 @@ userRouter.patch(
   UserController.changeUserRole,
 );
 
-// Delete user (Admin only)
+// Delete user (Super Admin only)
 userRouter.delete(
   "/:userId",
   authenticate,
-  isAdmin,
+  isSuperAdmin,
   validate(deleteUserSchema),
   UserController.deleteUser,
 );
-
 export default userRouter;
