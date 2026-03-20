@@ -1,26 +1,27 @@
 {
   "compilerOptions": {
-    // Environment setup & latest features
-    "lib": [
-      "ESNext"
-    ],
+    "lib": ["ESNext"],
     "target": "ESNext",
-    "module": "Preserve",
-    "moduleDetection": "force",
+    
+    // Vercel-এর যেন বুঝতে সমস্যা না হয়, তাই CommonJS করে দেওয়া হলো
+    "module": "CommonJS",
+    "moduleResolution": "node",
+    
+    // Server compatibility এর জন্য এই লাইনটি খুব জরুরি
+    "esModuleInterop": true, 
+    "allowSyntheticDefaultImports": true,
+    
     "jsx": "react-jsx",
     "allowJs": true,
-    // Bundler mode
-    "moduleResolution": "bundler",
-    "allowImportingTsExtensions": true,
-    "verbatimModuleSyntax": true,
     "noEmit": true,
+
     // Best practices
     "strict": true,
     "skipLibCheck": true,
     "noFallthroughCasesInSwitch": true,
     "noUncheckedIndexedAccess": true,
     "noImplicitOverride": true,
-    // Some stricter flags (disabled by default)
+    
     "noUnusedLocals": false,
     "noUnusedParameters": false,
     "noPropertyAccessFromIndexSignature": false
