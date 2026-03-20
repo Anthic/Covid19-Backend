@@ -17,7 +17,7 @@ import mlClient from "./utils/mlClient";
 const app = express();
 
 //security middleware
-<<<<<<< HEAD
+
 app.use(
   cors({
     origin: [
@@ -27,16 +27,10 @@ app.use(
     ],
     methods: ["GET", "POST", "PUT", "DELETE", "PATCH"],
     allowedHeaders: ["Content-Type", "Authorization"],
+    credentials: true,
   }),
 );
-=======
-app.use(cors({
-  origin: ["https://covid19-frontend-nine.vercel.app", "http://localhost:5173", "http://localhost:3000"],
-  methods: ["GET", "POST", "PUT", "DELETE", "PATCH"],
-  allowedHeaders: ["Content-Type", "Authorization"],
-  credentials: true,
-}));
->>>>>>> 9c54b23e0509481f112ea79728407b6f708602b3
+
 app.use(helmet());
 app.use(compression());
 
