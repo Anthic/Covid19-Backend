@@ -15,7 +15,7 @@ const connectDB = async (): Promise<void> => {
     });
     dbLogger.connected("MongoDB");
   } catch (error) {
-    console.error(" MongoDB connection failed:", error);
+    console.error("MongoDB connection failed:", error);
     throw error;
   }
 };
@@ -37,12 +37,12 @@ const startServer = async (): Promise<void> => {
       if (error.code === "EADDRINUSE") {
         console.error(`Port ${ConfigEnvVariable.PORT} is already in use`);
       } else {
-        console.error(" Server error:", error);
+        console.error("Server error:", error);
       }
       process.exit(1);
     });
   } catch (error) {
-    console.error(" Failed to start server:", error);
+    console.error("Failed to start server:", error);
     process.exit(1);
   }
 };
@@ -51,7 +51,7 @@ const gracefulShutdown = async (signal: string): Promise<void> => {
   appLogger.shutdown(`${signal} received`);
 
   const forceShutdownTimer = setTimeout(() => {
-    console.error(" Forced shutdown after 30s timeout");
+    
     process.exit(1);
   }, 30000);
 
@@ -66,17 +66,17 @@ const gracefulShutdown = async (signal: string): Promise<void> => {
           }
         });
       });
-      console.log(" HTTP server closed");
+      
     }
 
     await mongoose.connection.close();
     dbLogger.disconnected("Graceful shutdown");
 
     clearTimeout(forceShutdownTimer);
-    console.log(" Graceful shutdown completed");
+    
     process.exit(0);
   } catch (error) {
-    console.error(" Error during shutdown:", error);
+    
     clearTimeout(forceShutdownTimer);
     process.exit(1);
   }
