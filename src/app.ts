@@ -21,7 +21,7 @@ const app = express();
 app.use(
   cors({
     origin: [
-      "https://covid19-frontend-nine.vercel.app",
+      "https://covid19-frontend-ruby.vercel.app/",
       "http://localhost:5173",
       "http://localhost:3000",
     ],
