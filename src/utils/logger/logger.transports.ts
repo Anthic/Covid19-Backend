@@ -14,7 +14,7 @@ export const consoleTransport = new winston.transports.Console({
 export const getTransports = (): winston.transport[] => {
   const transports: winston.transport[] = [];
 
-  // Vercel বা Serverless-এ ফাইল রাইট করা যায় না, তাই সব লগের জন্য শুধুমাত্র Console ব্যবহার করা হচ্ছে।
+ 
   if (loggerConfig.enableConsole) {
     transports.push(consoleTransport);
   }
