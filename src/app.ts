@@ -70,6 +70,14 @@ app.get("/health", async (_req: Request, res: Response) => {
   });
 });
 
+// // Ignore browser automated requests to keep logs clean
+// app.get("/favicon.ico", (_req: Request, res: Response) => {
+//   res.status(204).end();
+// });
+// app.get("/.well-known/*", (_req: Request, res: Response) => {
+//   res.status(204).end();
+// });
+
 //404 handler
 app.use((req: Request, _res: Response, next: NextFunction) => {
   next(

@@ -57,19 +57,26 @@ export const debugFileTransport = new DailyRotateFile({
 });
 
 //transport array based on enviroment
+
+
 export const getTransports = (): winston.transport[] => {
   const transports: winston.transport[] = [];
-  // Always add file transports in production
-  if (loggerConfig.enableFile) {
+
+  // Vercel-এ ফাইল ট্রান্সপোর্ট disable করা হলো
+  const isVercel = process.env.VERCEL === "1" || process.env.NODE_ENV === "production";
+
+  if (loggerConfig.enableFile && !isVercel) {
     transports.push(combinedFileTransport);
     transports.push(errorFileTransport);
     transports.push(accessLogTransport);
   }
 
-  // Add console in development
+  
   if (loggerConfig.enableConsole) {
     transports.push(consoleTransport);
-    transports.push(debugFileTransport);
+    
+    if (!isVercel) transports.push(debugFileTransport);
   }
+
   return transports;
 };
